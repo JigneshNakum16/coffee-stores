@@ -1,29 +1,58 @@
 import Head from 'next/head'
 import styles from '../styles/Home.module.css'
-import axios from 'axios'
 import Image from 'next/image'
 import Banner from '@/Components/banner'
 import Card from '@/Components/card'
 import { fetchCoffeeStores } from '@/lib/coffee-store'
+import useTrackLocation from '@/hooks/use-track-location'
+import { useEffect } from 'react'
 
 
 export async function getStaticProps(content) {
-  //  fsq3CvWHPmsY7Q4SckwIpe24b+/quaOfBO6fW+bQmnV2bHA=
 
   const coffeeStore = await fetchCoffeeStores()
   return {
     props: { coffeeStore }
   };
 }
-// props: { coffeeStore: coffeeStoreData }
 
 export default function Home(props) {
 
+  const { handleTrackLocation, latLong, locationErrorMsg, isFindingLocation } = useTrackLocation()
 
-  // console.log("props", props)
+
+  console.log({ latLong, locationErrorMsg, isFindingLocation })
+
+  // useEffect(async () => {
+  //   if (latLong) {
+  //     try {
+  //       const fetchedCoffeeStores = await fetchCoffeeStores(latLong, 30)
+  //       console.log("fetchedCoffeeStores", fetchedCoffeeStores)
+  //     } catch (error) {
+  //       console.log({ error })
+  //     }
+  //   }
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [latLong])
+
+  useEffect(() => {
+    (async () => {
+
+      if (latLong) {
+        try {
+          const fetchedCoffeeStores = await fetchCoffeeStores(latLong, 30)
+          console.log("fetchedCoffeeStores", fetchedCoffeeStores)
+        } catch (error) {
+          console.log({ error })
+        }
+      }
+
+    })();
+
+  }, [latLong])
 
   const handleOnBannerBtnClick = () => {
-    console.log("click ")
+    handleTrackLocation()
   }
 
   return (
@@ -37,7 +66,8 @@ export default function Home(props) {
 
 
       <main className={styles.main}>
-        <Banner buttonText="view store nearby" handleOnClick={handleOnBannerBtnClick} />
+        <Banner buttonText={isFindingLocation ? "Locating... " : "view store nearby"} handleOnClick={handleOnBannerBtnClick} />
+        {locationErrorMsg && <p>something want wrong : {locationErrorMsg}</p>}
         <div className={styles.heroImage}>
           <Image src={"/static/hero-image.png"} width={700} height={400} />
         </div>

@@ -1,59 +1,49 @@
-import Head from 'next/head'
-import styles from '../styles/Home.module.css'
-import Image from 'next/image'
-import Banner from '@/Components/banner'
-import Card from '@/Components/card'
-import { fetchCoffeeStores } from '@/lib/coffee-store'
-import useTrackLocation from '@/hooks/use-track-location'
-import { useEffect } from 'react'
+import Head from "next/head";
+import styles from "../styles/Home.module.css";
+import Image from "next/image";
+import Banner from "@/Components/banner";
+import Card from "@/Components/card";
+import { fetchCoffeeStores } from "@/lib/coffee-store";
+import useTrackLocation from "@/hooks/use-track-location";
+import { useEffect, useState } from "react";
 
-
-export async function getStaticProps(content) {
-
-  const coffeeStore = await fetchCoffeeStores()
+export async function getStaticProps() {
+  const coffeeStore = await fetchCoffeeStores();
+  console.log("coffeeStore", coffeeStore);
   return {
-    props: { coffeeStore }
+    props: { coffeeStore },
   };
 }
 
 export default function Home(props) {
+  const { handleTrackLocation, latLong, locationErrorMsg, isFindingLocation } =
+    useTrackLocation();
 
-  const { handleTrackLocation, latLong, locationErrorMsg, isFindingLocation } = useTrackLocation()
-
-
-  console.log({ latLong, locationErrorMsg, isFindingLocation })
-
-  // useEffect(async () => {
-  //   if (latLong) {
-  //     try {
-  //       const fetchedCoffeeStores = await fetchCoffeeStores(latLong, 30)
-  //       console.log("fetchedCoffeeStores", fetchedCoffeeStores)
-  //     } catch (error) {
-  //       console.log({ error })
-  //     }
-  //   }
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [latLong])
+  console.log({ latLong, locationErrorMsg, isFindingLocation });
+  const res = latLong.replace(/ /g, "");
+  const [coffeeStores, setCoffeeStores] = useState([]);
+  const [coffeeStoresError, setCoffeeStoresError] = useState("");
 
   useEffect(() => {
-    (async () => {
-
+    async function setCoffeeStoresByLocation() {
       if (latLong) {
         try {
-          const fetchedCoffeeStores = await fetchCoffeeStores(latLong, 30)
-          console.log("fetchedCoffeeStores", fetchedCoffeeStores)
+          const fetchedCoffeeStores = await fetchCoffeeStores(res, 30);
+          setCoffeeStores(fetchedCoffeeStores);
+          setCoffeeStoresError("");
         } catch (error) {
-          console.log({ error })
+          console.log({ error });
+          setCoffeeStoresError(error.message);
         }
       }
-
-    })();
-
-  }, [latLong])
+    }
+    setCoffeeStoresByLocation();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [latLong]);
 
   const handleOnBannerBtnClick = () => {
-    handleTrackLocation()
-  }
+    handleTrackLocation();
+  };
 
   return (
     <>
@@ -64,25 +54,61 @@ export default function Home(props) {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-
       <main className={styles.main}>
-        <Banner buttonText={isFindingLocation ? "Locating... " : "view store nearby"} handleOnClick={handleOnBannerBtnClick} />
+        <Banner
+          buttonText={isFindingLocation ? "Locating... " : "view store nearby"}
+          handleOnClick={handleOnBannerBtnClick}
+        />
         {locationErrorMsg && <p>something want wrong : {locationErrorMsg}</p>}
+        {coffeeStoresError && <p>something want wrong : {coffeeStoresError}</p>}
+
         <div className={styles.heroImage}>
           <Image src={"/static/hero-image.png"} width={700} height={400} />
         </div>
-        {props?.coffeeStore?.length > 0 && <>
-          <h2 className={styles.heading2}>Torono stores</h2>
-          <div className={styles.cardLayout}>
-            {props.coffeeStore.map((coffeeStore) => {
-              return <Card key={coffeeStore.id} name={coffeeStore?.name} ImgUrl={coffeeStore.imgUrl || "https://images.unsplash.com/photo-1498804103079-a6351b050096?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=2468&q=80"} href={`coffee-store/${coffeeStore.id}`} className={styles.card} />
-
-            })}
-
-          </div>
-        </>}
+        {coffeeStores.length > 0 && (
+          <>
+            <h2 className={styles.heading2}>Share near me</h2>
+            <div className={styles.cardLayout}>
+              {coffeeStores.map((coffeeStore) => {
+                console.log("coffeeStore@@##", coffeeStore);
+                return (
+                  <Card
+                    key={coffeeStore.id}
+                    name={coffeeStore?.name}
+                    ImgUrl={
+                      coffeeStore.imgUrl ||
+                      "https://images.unsplash.com/photo-1498804103079-a6351b050096?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=2468&q=80"
+                    }
+                    href={`coffee-store/${coffeeStore.id}`}
+                    className={styles.card}
+                  />
+                );
+              })}
+            </div>
+          </>
+        )}
+        {props.coffeeStore?.length > 0 && (
+          <>
+            <h2 className={styles.heading2}>Torono stores</h2>
+            <div className={styles.cardLayout}>
+              {props.coffeeStore.map((coffeeStore) => {
+                return (
+                  <Card
+                    key={coffeeStore.id}
+                    name={coffeeStore?.name}
+                    ImgUrl={
+                      coffeeStore.imgUrl ||
+                      "https://images.unsplash.com/photo-1498804103079-a6351b050096?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=2468&q=80"
+                    }
+                    href={`coffee-store/${coffeeStore.id}`}
+                    className={styles.card}
+                  />
+                );
+              })}
+            </div>
+          </>
+        )}
       </main>
     </>
-
-  )
+  );
 }

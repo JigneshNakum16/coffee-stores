@@ -5,31 +5,38 @@ import Banner from "@/Components/banner";
 import Card from "@/Components/card";
 import { fetchCoffeeStores } from "@/lib/coffee-store";
 import useTrackLocation from "@/hooks/use-track-location";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
+import { ACTION_TYPE, StoreContext } from "../store/store.context";
 
 export async function getStaticProps() {
   const coffeeStore = await fetchCoffeeStores();
-  console.log("coffeeStore", coffeeStore);
   return {
     props: { coffeeStore },
   };
 }
 
 export default function Home(props) {
-  const { handleTrackLocation, latLong, locationErrorMsg, isFindingLocation } =
-    useTrackLocation();
-
-  console.log({ latLong, locationErrorMsg, isFindingLocation });
-  const res = latLong.replace(/ /g, "");
-  const [coffeeStores, setCoffeeStores] = useState([]);
+  const { handleTrackLocation, locationErrorMsg, isFindingLocation } = useTrackLocation();
   const [coffeeStoresError, setCoffeeStoresError] = useState("");
+
+  const { dispatch, state } = useContext(StoreContext)
+  const { latLong, coffeeStores } = state
+  const res = latLong.replace(/ /g, "");
 
   useEffect(() => {
     async function setCoffeeStoresByLocation() {
       if (latLong) {
         try {
-          const fetchedCoffeeStores = await fetchCoffeeStores(res, 30);
-          setCoffeeStores(fetchedCoffeeStores);
+          // const fetchedCoffeeStores = await fetchCoffeeStores(res, 30);
+          const response = await fetch(`/api/getCoffeeStoresByLocation?latLong=${res}&limit=30`)
+          const coffeeStores = await response.json()
+          console.log(coffeeStores)
+          dispatch({
+            type: ACTION_TYPE.SET_COFFEE_STORES,
+            payload: {
+              coffeeStores
+            }
+          })
           setCoffeeStoresError("");
         } catch (error) {
           console.log({ error });
@@ -65,16 +72,15 @@ export default function Home(props) {
         <div className={styles.heroImage}>
           <Image src={"/static/hero-image.png"} width={700} height={400} />
         </div>
-        {coffeeStores.length > 0 && (
+        {coffeeStores && coffeeStores?.length > 0 && (
           <>
             <h2 className={styles.heading2}>Share near me</h2>
             <div className={styles.cardLayout}>
               {coffeeStores.map((coffeeStore) => {
-                console.log("coffeeStore@@##", coffeeStore);
                 return (
                   <Card
                     key={coffeeStore.id}
-                    name={coffeeStore?.name}
+                    name={coffeeStore.name}
                     ImgUrl={
                       coffeeStore.imgUrl ||
                       "https://images.unsplash.com/photo-1498804103079-a6351b050096?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=2468&q=80"

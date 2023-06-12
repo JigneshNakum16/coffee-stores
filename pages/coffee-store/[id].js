@@ -46,7 +46,6 @@ const CoffeeStore = (initialProps) => {
 
   const { state: { coffeeStores } } = useContext(StoreContext);
 
-  console.log("initialProps", coffeeStores, initialProps)
 
 
   useEffect(() => {

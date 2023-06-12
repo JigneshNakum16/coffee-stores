@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "airtable": "^0.12.1",
     "axios": "^1.4.0",
     "classnames": "^2.3.2",
     "next": "13.4.2",

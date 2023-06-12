@@ -6,7 +6,6 @@ const DynamicRouter = () => {
 
     const router = useRouter()
     const query = router.query.dynamic
-    console.log("query ", query)
     return (
         <div>
             <head>

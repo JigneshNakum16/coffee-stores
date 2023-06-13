@@ -27,7 +27,6 @@ export default function Home(props) {
     async function setCoffeeStoresByLocation() {
       if (latLong) {
         try {
-          // const fetchedCoffeeStores = await fetchCoffeeStores(res, 30);
           const response = await fetch(`/api/getCoffeeStoresByLocation?latLong=${res}&limit=30`)
           const coffeeStores = await response.json()
 
@@ -39,7 +38,6 @@ export default function Home(props) {
           })
           setCoffeeStoresError("");
         } catch (error) {
-          console.log({ error });
           setCoffeeStoresError(error.message);
         }
       }
@@ -95,7 +93,7 @@ export default function Home(props) {
         )}
         {props.coffeeStore?.length > 0 && (
           <>
-            <h2 className={styles.heading2}>Torono stores</h2>
+            <h2 className={styles.heading2}>Surat stores</h2>
             <div className={styles.cardLayout}>
               {props.coffeeStore.map((coffeeStore) => {
                 return (
